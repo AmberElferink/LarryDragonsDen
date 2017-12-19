@@ -47,7 +47,6 @@ abstract class Character : AnimatedGameObject
     {
         if (!IsDowned)
         {
-            bool movingDiagonally = false;
             Vector2 previousPosition = this.position;
             //Input keys for basic AA and abilities
             if (inputHelper.KeyPressed(Keys.Q))
@@ -65,12 +64,10 @@ abstract class Character : AnimatedGameObject
                     if (inputHelper.IsKeyDown(Keys.A))
                     {
                         this.position += MovementVector(this.movementSpeed, 225);
-                        movingDiagonally = true;
                     }
                     else if (inputHelper.IsKeyDown(Keys.D))
                     {
                         this.position += MovementVector(this.movementSpeed, 315);
-                        movingDiagonally = true;
                     }
                     else
                     {
@@ -84,12 +81,10 @@ abstract class Character : AnimatedGameObject
                     if (inputHelper.IsKeyDown(Keys.A))
                     {
                         this.position += MovementVector(this.movementSpeed, 135);
-                        movingDiagonally = true;
                     }
                     else if (inputHelper.IsKeyDown(Keys.D))
                     {
                         this.position += MovementVector(this.movementSpeed, 45);
-                        movingDiagonally = true;
                     }
                     else
                     {
@@ -110,7 +105,7 @@ abstract class Character : AnimatedGameObject
             }
 
             bool goingUp = previousPosition.Y > this.position.Y;
-            if (!SolidCollisionChecker(movingDiagonally, goingUp))
+            if (!SolidCollisionChecker())
             {
                 this.position = previousPosition;
             }
@@ -165,26 +160,18 @@ abstract class Character : AnimatedGameObject
     }
 
         //Dikke collision met muren/andere solid objects moet ervoor zorgen dat de player niet verder kan bewegen.
-    public bool SolidCollisionChecker(bool diagonal, bool goingUp)
+    public bool SolidCollisionChecker()
     {
         GameObjectGrid Field = GameWorld.Find("TileField") as GameObjectGrid;
+        Rectangle quarterBoundingBox = new Rectangle((int)this.BoundingBox.X, (int)(this.BoundingBox.Y + 0.75 * Height), this.Width, (int)(this.Height / 4));
 
         foreach (Tile tile in Field.Objects)
         {
-            if (goingUp && !diagonal || !(this.position.Y - this.sprite.Height < tile.BoundingBox.Top))
-            {
-                if ((tile.Type == TileType.Brick || tile.Type == TileType.RockIce) && (tile.BoundingBox.Contains(this.position.X, this.position.Y - 25)))
-                {
-                   return false;
-                }
-            }
-
-            else if ((tile.Type == TileType.Brick || tile.Type == TileType.RockIce) && this.CollidesWith(tile))
+            if (tile.Type == TileType.Brick && quarterBoundingBox.Intersects(tile.BoundingBox))
             {
                 return false;
             }
         }
-
         return true;
     }
 
